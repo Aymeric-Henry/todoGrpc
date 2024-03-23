@@ -7,9 +7,12 @@ import (
 	"log"
 	"net"
 
+	"net/http"
+
 	"github.com/Aymeric-Henry/todoGrpc/handler"
 	pb "github.com/Aymeric-Henry/todoGrpc/proto/helloworld"
 	"github.com/Aymeric-Henry/todoGrpc/proto/todo"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 
 	"google.golang.org/grpc"
 )
@@ -41,7 +44,20 @@ func main() {
 	todoHandler := handler.Server{}
 	todo.RegisterTodoServiceServer(s, &todoHandler)
 	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
+	// gRPC web code
+	grpcWebServer := grpcweb.WrapServer(
+		s,
+		// Enable CORS
+		grpcweb.WithOriginFunc(func(origin string) bool { return true }),
+	)
+
+	srv := &http.Server{
+		Handler: grpcWebServer,
+		Addr:    fmt.Sprintf("localhost:%d", *port+1),
+	}
+
+	log.Printf("http server listening at %v", srv.Addr)
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
