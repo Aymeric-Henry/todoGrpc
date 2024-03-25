@@ -1,9 +1,9 @@
 ### To start the gRPC server
 
-on docker 
+Launch the server
 
 ```console
-sudo docker-compose up -d
+./todoGrpc
 ```
 ### Ports
 
